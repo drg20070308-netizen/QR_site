@@ -93,4 +93,4 @@ app.listen(PORT, () => {
   console.log(`🚀 kiosknecut 서버가 성공적으로 구동되었습니다!`);
   console.log(`👉 접속 주소: http://localhost:${PORT}`);
   console.log(`===========================================`);
-}); 
+});
