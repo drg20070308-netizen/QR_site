@@ -153,6 +153,7 @@
       } else {
         // 주소 뒤에 ?photoUrl=... 파라미터 없이 그냥 웹사이트에 들어온 경우
         statusText.textContent = "QR 코드로 접속하시면 사진을 확인하실 수 있어요!";
+        statusText.style.color = "#000000"; // 글씨 색상을 검정색으로 지정
         statusText.className = "status-msg error-msg";
       }
     });
