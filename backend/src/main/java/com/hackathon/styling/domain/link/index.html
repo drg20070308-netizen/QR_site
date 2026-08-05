@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <!-- 스마트폰 화면 크기에 맞게 자동으로 가로폭을 맞춰주는 반응형 설정 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>kiosknecut - 사진 저장</title>
+
+  <!-- [라이브러리 불러오기] HTML 화면 요소를 캡쳐하여 이미지(PNG) 파일로 바꿔주는 html2canvas 라이브러리 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <style>
+    /* 여백 초기화 및 박스 크기 계산 방식 통일 */
+    * { 
+      box-sizing: border-box; 
+    }
+
+    /* 전체 화면 스타일: 기본 배경색 지정 및 화면 중앙 정렬 */
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #fbf9f4; /* 이미지 상단과 유사한 아이보리 톤 배경 */
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;    /* 세로 방향으로 요소 배치 */
+      align-items: center;        /* 가로 중앙 정렬 */
+      justify-content: center;   /* 세로 중앙 정렬 */
+      min-height: 100vh;          /* 화면 전체 높이 사용 */
+    }
+
+    /* 상단 로고 타이틀 스타일 */
+    .brand-title {
+      font-size: 26px;
+      font-weight: bold;
+      color: #6d5238;             /* 감성적인 브라운 톤 색상 */
+      margin-bottom: 24px;
+    }
+
+    /* [사진 프레임 박스] 인생네컷 실물 사진 느낌을 내는 하얀색 프레임 */
+    .photo-card {
+      background-color: #ffffff;
+      padding: 16px 16px 35px 16px; /* 아래쪽 여백을 더 넓게 주어 네컷 사진 느낌 강조 */
+      border-radius: 12px;           /* 모서리를 부드럽게 */
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08); /* 입체감을 주는 그림자 효과 */
+      width: 320px;                  /* 모바일 화면에 적합한 가로 크기 */
+      text-align: center;
+    }
+
+    /* 프레임 안의 사진 이미지 */
+    .photo-card img {
+      width: 100%;
+      height: auto;
+      border-radius: 6px;
+      display: block;
+    }
+
+    /* 프레임 하단 문구 */
+    .frame-footer {
+      margin-top: 15px;
+      font-size: 14px;
+      font-weight: bold;
+      color: #888;
+      letter-spacing: 2px; /* 글자 간격 넓히기 */
+    }
+
+    /* 안내 문구 스타일 */
+    .guide-text {
+      margin: 20px 0 15px 0;
+      font-size: 14px;
+      color: #666;
+    }
+
+    /* [사진 저장 버튼] 시선에 띄는 주황색 둥근 버튼 */
+    .save-btn {
+      background-color: #e08b53; /* 주황색 시그니처 컬러 */
+      color: white;
+      border: none;
+      border-radius: 30px;      /* 동그란 버튼 모양 */
+      padding: 16px 32px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(224, 139, 83, 0.4);
+      transition: all 0.2s ease;
+    }
+
+    /* 버튼을 터치하거나 누를 때 살짝 작아지는 터치 효과 */
+    .save-btn:active {
+      transform: scale(0.96);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. 상단 브랜딩 타이틀 -->
+  <div class="brand-title">kiosknecut</div>
+
+  <!-- 2. 화면 캡쳐 대상 영역 (이 박스 내부 전체가 캡쳐되어 이미지로 저장됩니다) -->
+  <div id="capture-target" class="photo-card">
+    <!-- 기본 테스트용 샘플 이미지 (실제 구동 시 자바스크립트로 내 사진 경로가 삽입됨) -->
+    <img id="photo-img" src="https://picsum.photos/400/600" alt="네컷사진">
+    <div class="frame-footer">kiosknecut</div>
+  </div>
+
+  <!-- 3. 사용자를 위한 안내 글귀 -->
+  <p class="guide-text">버튼을 누르면 사진이 앨범에 저장됩니다.</p>
+
+  <!-- 4. 저장 실행 버튼 -->
+  <button class="save-btn" onclick="savePhoto()">📷 사진 저장하기</button>
+
+  <script>
+    // =========================================================
+    // [동적 사진 불러오기 로직]
+    // QR 코드를 통해 접속한 주소 뒤의 파라미터(?id=12345)를 읽어옵니다.
+    // =========================================================
+    
+    // 현재 웹 브라우저의 URL 주소 파라미터 분석 객체 생성
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // URL에서 '?id=' 뒤에 붙은 고유 사진 고유 아이디 값을 추출
+    const photoId = urlParams.get('id');
+
+    // 만약 URL에 photoId가 정상적으로 전달되어 있다면
+    if (photoId) {
+      // <img> 태그의 이미지 주소를 서버의 실제 이미지 경로(/uploads/사진ID.png)로 변경
+      document.getElementById('photo-img').src = `/uploads/${photoId}.png`;
+    }
+
+    // =========================================================
+    // [사진 저장 함수] 버튼 클릭 시 실행됩니다.
+    // =========================================================
+    function savePhoto() {
+      // 캡쳐할 대상 요소(사진+하얀색 프레임 전체 박스)를 선택
+      const target = document.getElementById('capture-target');
+
+      // html2canvas 옵션 설정 및 실행
+      html2canvas(target, {
+        scale: 3,     /* 숫자가 높을수록 저장되는 사진 화질이 또렷해집니다 (3배 해상도) */
+        useCORS: true /* 외부 서버나 다른 경로의 이미지 불러오기 허용 설정 */
+      }).then(canvas => {
+        // 캡쳐가 성공하면 가상의 다운로드용 <a>(링크) 태그를 만듭니다.
+        const link = document.createElement('a');
+        
+        // 다운로드될 파일 이름 지정
+        link.download = 'kiosknecut_photo.png';
+        
+        // 캔버스에 그려진 이미지를 Data URL(PNG 변환) 형식으로 변환하여 링크에 연결
+        link.href = canvas.toDataURL('image/png');
+        
+        // 가상 링크를 자동으로 클릭하여 스마트폰 다운로드 동작 실행
+        link.click();
+      }).catch(err => {
+        // 인앱 브라우저 보안 이슈 등으로 자동 다운로드가 실패했을 때의 에러 핸들링
+        console.error("캡쳐 실패:", err);
+        alert('자동 저장이 지원되지 않는 브라우저입니다. 화면의 사진을 길게 눌러 [사진 앱에 저장]을 이용해 주세요.');
+      });
+    }
+  </script>
+</body>
+</html> 
