@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>네컷사진 다운로드</title>
+  <title>life.stylist - 사진 다운로드</title>
   <style>
     * {
       box-sizing: border-box;
@@ -13,41 +13,50 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background-color: #f5f5f7;
+      background-color: #f7f5ef; /* 따뜻한 연갈색/크림 배경 */
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
       padding: 20px;
+      color: #4a3b32;
     }
 
     .container {
-      background: #ffffff;
       width: 100%;
-      max-width: 420px;
-      padding: 30px 20px;
-      border-radius: 20px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      max-width: 400px;
       text-align: center;
     }
 
-    h1 {
-      font-size: 1.5rem;
-      color: #1d1d1f;
-      margin-bottom: 20px;
+    /* 브랜드 타이틀 */
+    .brand-title {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #4a3b32;
+      margin-bottom: 24px;
+      letter-spacing: -0.5px;
     }
 
-    /* 이미지 표시 영역 */
+    /* 네컷사진 카드 틀 */
+    .photo-card {
+      background: #ffffff;
+      padding: 16px 16px 20px 16px;
+      border-radius: 20px;
+      box-shadow: 0 8px 30px rgba(74, 59, 50, 0.08);
+      margin-bottom: 24px;
+    }
+
+    /* 이미지 및 안내문구 영역 */
     .photo-wrapper {
       width: 100%;
-      min-height: 250px;
-      background-color: #f0f0f2;
+      min-height: 380px;
+      background-color: #f2eee5; /* 연한 베이지 */
       border-radius: 12px;
       display: flex;
       justify-content: center;
       align-items: center;
       overflow: hidden;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
 
     .photo-wrapper img {
@@ -60,54 +69,67 @@
     /* 안내 메시지 */
     .status-msg {
       font-size: 0.95rem;
-      color: #000000;
-      padding: 20px;
-      line-height: 1.5;
+      color: #4a3b32;
+      padding: 30px 20px;
+      line-height: 1.6;
       word-break: keep-all;
+    }
+
+    /* 하단 소제목/로고 표시 */
+    .card-footer-logo {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #4a3b32;
+      margin-top: 4px;
     }
 
     /* 다운로드 버튼 */
     .download-btn {
       width: 100%;
       padding: 16px;
-      background-color: #0071e3;
+      background-color: #6b5344; /* 고급스러운 연갈색/브라운 버튼 */
       color: #ffffff;
       border: none;
-      border-radius: 12px;
+      border-radius: 14px;
       font-size: 1rem;
       font-weight: 600;
       cursor: pointer;
-      transition: background-color 0.2s ease;
+      transition: background-color 0.2s ease, transform 0.1s ease;
+      box-shadow: 0 4px 12px rgba(107, 83, 68, 0.2);
       display: none;
     }
 
     .download-btn:active {
-      background-color: #005bb5;
+      background-color: #544034;
+      transform: scale(0.99);
     }
 
-    /* 모바일 안내문구 */
+    /* 모바일 안내 문구 */
     .tip-msg {
-      margin-top: 15px;
-      font-size: 0.8rem;
-      color: #86868b;
+      margin-top: 14px;
+      font-size: 0.85rem;
+      color: #8c7b70;
       display: none;
       word-break: keep-all;
+      line-height: 1.4;
     }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <h1>📸 내 사진 저장하기</h1>
+    <h1 class="brand-title">life.stylist</h1>
 
-    <div class="photo-wrapper">
-      <div id="statusText" class="status-msg">사진을 불러오는 중입니다...</div>
-      <!-- crossorigin 속성 추가하여 CORS 이미지 처리 수월하게 설정 -->
-      <img id="photo" src="" alt="촬영된 사진" style="display: none;" crossorigin="anonymous">
+    <div class="photo-card">
+      <div class="photo-wrapper">
+        <div id="statusText" class="status-msg">사진을 불러오는 중입니다...</div>
+        <img id="photo" src="" alt="life.stylist photo" style="display: none;" crossorigin="anonymous">
+      </div>
+      <div class="card-footer-logo">life.stylist</div>
     </div>
 
     <button id="downloadBtn" class="download-btn" onclick="downloadPhoto()">사진 저장하기</button>
-    <p id="tipMsg" class="tip-msg">💡 저장이 안 될 경우, 이미지 파일을 길게 누르거나 우클릭하여 '이미지 저장'을 눌러주세요.</p>
+    <p id="tipMsg" class="tip-msg">버튼을 누르면 사진이 앨범(파일)에 저장됩니다.</p>
   </div>
 
   <script>
@@ -123,7 +145,7 @@
     if (photoUrl) {
       photoImg.src = photoUrl;
 
-      // 이미지 로드 성공
+      // 이미지 로드 성공 시
       photoImg.onload = () => {
         statusText.style.display = 'none';
         photoImg.style.display = 'block';
@@ -131,19 +153,20 @@
         tipMsg.style.display = 'block';
       };
 
-      // 이미지 로드 실패
+      // 이미지 로드 실패 시
       photoImg.onerror = () => {
-        statusText.textContent = "사진을 불러올 수 없습니다. 링크가 만료되었거나 올바르지 않습니다.";
-        statusText.style.color = "#e53e3e";
+        statusText.textContent = "사진을 찾을 수 없거나 24시간이 지나 만료되었습니다.";
+        statusText.style.color = "#d9534f";
       };
 
     } else {
+      // URL 파라미터가 없을 때
       statusText.textContent = "QR 코드로 접속하시면 사진을 확인하실 수 있어요! 📸";
-      statusText.style.color = "#000000";
+      statusText.style.color = "#4a3b32";
       statusText.style.fontWeight = "bold";
     }
 
-    // [사진 저장하기] 버튼 클릭 함수 (CORS 전용 다운로드)
+    // [사진 저장하기] 버튼 클릭 함수 (검증된 강제 다운로드 로직)
     async function downloadPhoto() {
       const currentPhotoUrl = photoImg.src;
 
@@ -153,7 +176,6 @@
       }
 
       try {
-        // mode: 'cors' 및 캐시 방지 옵션 추가
         const response = await fetch(currentPhotoUrl, {
           method: 'GET',
           mode: 'cors',
@@ -169,7 +191,7 @@
         
         const a = document.createElement('a');
         a.href = blobUrl;
-        a.download = `photo_${Date.now()}.jpg`; // 컴퓨터/폰에 저장될 파일명
+        a.download = `life_stylist_${Date.now()}.jpg`; // 파일 저장 이름
         
         document.body.appendChild(a);
         a.click();
@@ -180,9 +202,9 @@
       } catch (error) {
         console.error("다운로드 실패:", error);
         
-        // 다운로드 실패 시 예외 처리 (새 탭으로 사진 열기)
+        // 예외 처리 (새 탭 열기)
         window.open(currentPhotoUrl, '_blank');
-        alert("자동 다운로드가 차단되었습니다. 새로 열린 창에서 마우스 우클릭 후 '이미지를 다른 이름으로 저장'을 선택해 주세요!");
+        alert("자동 다운로드가 안 될 경우, 새로 열린 창에서 사진을 길게 누르거나 우클릭하여 저장해 주세요!");
       }
     }
   </script>
