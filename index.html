@@ -3,160 +3,189 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>life.stylist 사진 다운로드</title>
+  <title>네컷사진 다운로드</title>
   <style>
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: #f8f6f0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: #f5f5f7;
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
       padding: 20px;
     }
+
     .container {
+      background: #ffffff;
       width: 100%;
-      max-width: 400px;
+      max-width: 420px;
+      padding: 30px 20px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
       text-align: center;
     }
-    .header-title {
+
+    h1 {
       font-size: 1.5rem;
-      font-weight: 700;
-      color: #5c4033;
+      color: #1d1d1f;
       margin-bottom: 20px;
     }
-    .photo-card {
-      background: #ffffff;
-      padding: 16px;
-      border-radius: 16px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
-      margin-bottom: 20px;
-    }
-    .photo-container {
+
+    /* 이미지 표시 영역 */
+    .photo-wrapper {
       width: 100%;
-      min-height: 350px;
-      background: #f0ece1;
-      border-radius: 8px;
+      min-height: 250px;
+      background-color: #f0f0f2;
+      border-radius: 12px;
       display: flex;
       justify-content: center;
       align-items: center;
       overflow: hidden;
+      margin-bottom: 20px;
     }
-    .photo-container img {
+
+    .photo-wrapper img {
       width: 100%;
       height: auto;
-      display: none; /* 초기에는 무조건 숨김 (랜덤 이미지 방지) */
+      display: block;
+      border-radius: 12px;
     }
+
+    /* 안내 메시지 */
     .status-msg {
       font-size: 0.95rem;
-      color: #666;
+      color: #000000;
       padding: 20px;
       line-height: 1.5;
+      word-break: keep-all;
     }
-    .error-msg {
-      color: #e53e3e;
-      font-weight: 500;
-    }
-    .brand-footer {
-      font-size: 0.9rem;
-      font-weight: 700;
-      color: #5c4033;
-      margin-top: 12px;
-    }
-    .sub-notice {
-      font-size: 0.85rem;
-      color: #777;
-      margin-bottom: 16px;
-    }
-    .btn-download {
-      display: none; /* 초기에는 숨김 */
+
+    /* 다운로드 버튼 */
+    .download-btn {
       width: 100%;
       padding: 16px;
-      background-color: #d97736;
+      background-color: #0071e3;
       color: #ffffff;
-      font-size: 1rem;
-      font-weight: 600;
       border: none;
       border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
       cursor: pointer;
-      text-decoration: none;
-      transition: background-color 0.2s;
+      transition: background-color 0.2s ease;
+      display: none;
     }
-    .btn-download:hover {
-      background-color: #c26527;
+
+    .download-btn:active {
+      background-color: #005bb5;
+    }
+
+    /* 모바일 안내문구 */
+    .tip-msg {
+      margin-top: 15px;
+      font-size: 0.8rem;
+      color: #86868b;
+      display: none;
+      word-break: keep-all;
     }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <h1 class="header-title">life.stylist</h1>
+    <h1>📸 내 사진 저장하기</h1>
 
-    <div class="photo-card">
-      <div class="photo-container">
-        <!-- 기본 로딩/에러 문구만 배치 (기본 이미지 absolute 제거) -->
-        <p id="statusText" class="status-msg">사진을 불러오는 중입니다...</p>
-        <img id="photoImg" src="" alt="내 코디 사진">
-      </div>
-      <p class="brand-footer">life.stylist</p>
+    <div class="photo-wrapper">
+      <div id="statusText" class="status-msg">사진을 불러오는 중입니다...</div>
+      <!-- crossorigin 속성 추가하여 CORS 이미지 처리 수월하게 설정 -->
+      <img id="photo" src="" alt="촬영된 사진" style="display: none;" crossorigin="anonymous">
     </div>
 
-    <p class="sub-notice">버튼을 누르면 사진이 앨범에 저장됩니다.</p>
-
-    <a id="downloadBtn" class="btn-download" href="#" download="life.stylist.png">
-      사진 저장하기
-    </a>
+    <button id="downloadBtn" class="download-btn" onclick="downloadPhoto()">사진 저장하기</button>
+    <p id="tipMsg" class="tip-msg">💡 저장이 안 될 경우, 이미지 파일을 길게 누르거나 우클릭하여 '이미지 저장'을 눌러주세요.</p>
   </div>
 
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      // URL에서 photoUrl 파라미터 값 추출
-      const urlParams = new URLSearchParams(window.location.search);
-      const photoUrl = urlParams.get('photoUrl');
+    // URL에서 photoUrl 파라미터 추출
+    const urlParams = new URLSearchParams(window.location.search);
+    const photoUrl = urlParams.get('photoUrl');
 
-      const photoImg = document.getElementById('photoImg');
-      const statusText = document.getElementById('statusText');
-      const downloadBtn = document.getElementById('downloadBtn');
+    const photoImg = document.getElementById('photo');
+    const statusText = document.getElementById('statusText');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const tipMsg = document.getElementById('tipMsg');
 
-      // 1. 처음엔 이미지를 무조건 숨겨서 랜덤 예시 사진이 뜨지 못하게 함
-      photoImg.style.display = 'none';
-      downloadBtn.style.display = 'none';
+    if (photoUrl) {
+      photoImg.src = photoUrl;
 
-      // 2. URL 파라미터로 올바른 사진 주소가 들어왔는지 검사
-      if (photoUrl && photoUrl.trim() !== '') {
-        
-        // 브라우저 캐시 방지용 타임스탬프 파라미터 추가
-        const cacheBustUrl = photoUrl + (photoUrl.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
+      // 이미지 로드 성공
+      photoImg.onload = () => {
+        statusText.style.display = 'none';
+        photoImg.style.display = 'block';
+        downloadBtn.style.display = 'block';
+        tipMsg.style.display = 'block';
+      };
 
-        // S3 이미지 로드 성공 시 실행
-        photoImg.onload = () => {
-          statusText.style.display = 'none'; // 메시지 숨김
-          photoImg.style.display = 'block';  // 실제 내 사진만 출력
-          
-          downloadBtn.href = photoUrl;      // 저장 링크 연결
-          downloadBtn.style.display = 'block';
-        };
+      // 이미지 로드 실패
+      photoImg.onerror = () => {
+        statusText.textContent = "사진을 불러올 수 없습니다. 링크가 만료되었거나 올바르지 않습니다.";
+        statusText.style.color = "#e53e3e";
+      };
 
-        // S3 이미지 로드 실패 시 (24시간 지나 삭제되었거나 잘못된 파일인 경우)
-        photoImg.onerror = () => {
-          statusText.textContent = "사진을 찾을 수 없거나 24시간이 지나 만료되었습니다.";
-          statusText.className = "status-msg error-msg";
-        };
+    } else {
+      statusText.textContent = "QR 코드로 접속하시면 사진을 확인하실 수 있어요! 📸";
+      statusText.style.color = "#000000";
+      statusText.style.fontWeight = "bold";
+    }
 
-        // 이미지 다운로드 시작
-        photoImg.src = cacheBustUrl;
-      } else {
-        // 주소 뒤에 ?photoUrl=... 파라미터 없이 그냥 웹사이트에 들어온 경우
-        statusText.textContent = "QR 코드로 접속하시면 사진을 확인하실 수 있어요!";
-        statusText.style.color = "#000000"; // 글씨 색상을 검정색으로 지정
-        statusText.className = "status-msg error-msg";
+    // [사진 저장하기] 버튼 클릭 함수 (CORS 전용 다운로드)
+    async function downloadPhoto() {
+      const currentPhotoUrl = photoImg.src;
+
+      if (!currentPhotoUrl) {
+        alert("저장할 사진이 없습니다.");
+        return;
       }
-    });
+
+      try {
+        // mode: 'cors' 및 캐시 방지 옵션 추가
+        const response = await fetch(currentPhotoUrl, {
+          method: 'GET',
+          mode: 'cors',
+          cache: 'no-cache'
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const blob = await response.blob();
+        const blobUrl = window.URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = `photo_${Date.now()}.jpg`; // 컴퓨터/폰에 저장될 파일명
+        
+        document.body.appendChild(a);
+        a.click();
+        
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(blobUrl);
+
+      } catch (error) {
+        console.error("다운로드 실패:", error);
+        
+        // 다운로드 실패 시 예외 처리 (새 탭으로 사진 열기)
+        window.open(currentPhotoUrl, '_blank');
+        alert("자동 다운로드가 차단되었습니다. 새로 열린 창에서 마우스 우클릭 후 '이미지를 다른 이름으로 저장'을 선택해 주세요!");
+      }
+    }
   </script>
+
 </body>
 </html>
