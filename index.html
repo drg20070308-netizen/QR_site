@@ -123,7 +123,7 @@
     <div class="photo-card">
       <div class="photo-wrapper">
         <div id="statusText" class="status-msg">사진을 불러오는 중입니다...</div>
-        <img id="photo" src="" alt="life.stylist photo" style="display: none;" crossorigin="anonymous">
+        <img id="photo" src="" alt="life.stylist photo" style="display: none;">
       </div>
       <div class="card-footer-logo">life.stylist</div>
     </div>
@@ -133,9 +133,13 @@
   </div>
 
   <script>
-    // URL에서 photoUrl 파라미터 추출
+    // URL에서 새 photoKey 또는 기존 photoUrl 파라미터 추출
     const urlParams = new URLSearchParams(window.location.search);
-    const photoUrl = urlParams.get('photoUrl');
+    const photoKey = urlParams.get('photoKey');
+    const legacyPhotoUrl = urlParams.get('photoUrl');
+    const photoUrl = photoKey
+      ? `/api/photo?key=${encodeURIComponent(photoKey)}`
+      : legacyPhotoUrl;
 
     const photoImg = document.getElementById('photo');
     const statusText = document.getElementById('statusText');
